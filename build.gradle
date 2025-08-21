@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'io.qameta.allure' version '2.11.2'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    
+    // REST Assured
+
+    // https://mvnrepository.com/artifact/io.rest-assured/rest-assured
+    testImplementation 'io.rest-assured:rest-assured:5.5.6'
+    // https://mvnrepository.com/artifact/io.rest-assured/json-schema-validator
+    testImplementation 'io.rest-assured:json-schema-validator:5.5.6'
+    
+    // Allure
+
+    // https://mvnrepository.com/artifact/io.qameta.allure/allure-junit5
+    testImplementation 'io.qameta.allure:allure-junit5:2.29.1'
+    // https://mvnrepository.com/artifact/io.qameta.allure/allure-rest-assured
+    testImplementation 'io.qameta.allure:allure-rest-assured:2.29.1'
+    
+    // Jackson for JSON processing
+
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.19.2'
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'allure.results.directory', 'build/allure-results'
+}
+
+allure {
+    adapter {
+        aspectjWeaver.set(true)
+        frameworks {
+            junit5 {
+                adapterVersion.set("2.25.0")
+            }
+        }
+    }
+}
+
+tasks.register('runSearchTests', Test) {
+    include '**/SearchBreweries*Test.class'
+    useJUnitPlatform()
+    systemProperty 'allure.results.directory', 'build/allure-results'
+}
+
+tasks.register('generateAllureReport') {
+    dependsOn test
+    doLast {
+        exec {
+            commandLine 'allure', 'generate', 'build/allure-results', '--clean', '-o', 'build/reports/allure'
+        }
+    }
+}
